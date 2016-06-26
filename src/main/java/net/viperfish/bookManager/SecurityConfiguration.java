@@ -58,8 +58,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.failureUrl("/login?error").defaultSuccessUrl("/book").usernameParameter("username")
 				.passwordParameter("password").permitAll().and().logout().logoutUrl("/logout")
 				.logoutSuccessUrl("/login").invalidateHttpSession(true).deleteCookies("JSESSIONID").permitAll().and()
-				.sessionManagement().sessionFixation().migrateSession().maximumSessions(1)
-				.maxSessionsPreventsLogin(true).sessionRegistry(this.sessionRegistryImpl());
+				.sessionManagement().sessionFixation().migrateSession().maximumSessions(3)
+				.maxSessionsPreventsLogin(false).sessionRegistry(this.sessionRegistryImpl());
 	}
 
 }
