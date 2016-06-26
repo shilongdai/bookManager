@@ -1,0 +1,54 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+	      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	      version="3.0">
+	<display-name>BookManager</display-name>
+
+	<context-param>
+		<param-name>spring.profiles.active</param-name>
+		<param-value>production</param-value>
+	</context-param>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+		<cookie-config>
+			<path>/bookManager</path>
+			<http-only>true</http-only>
+			<secure>true</secure>
+		</cookie-config>
+		<tracking-mode>COOKIE</tracking-mode>
+	</session-config>
+
+	<jsp-config>
+		<jsp-property-group>
+			<url-pattern>*.jsp</url-pattern>
+			<url-pattern>*.jspf</url-pattern>
+			<page-encoding>UTF-8</page-encoding>
+			<trim-directive-whitespaces>true</trim-directive-whitespaces>
+			<default-content-type>text/html</default-content-type>
+		</jsp-property-group>
+	</jsp-config>
+
+	<context-param>
+		<param-name>defaultHtmlEscape</param-name>
+		<param-value>true</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>indexDir</param-name>
+		<param-value>/opt/obj13516/index</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>genres</param-name>
+		<param-value>None,Drama,Classic,Comic,Detective,Fable,Fairy Tale,Fanfiction,Fantasy,Fiction Narrative,Folklore,Historical Fiction,Horror,Humour,Legend,Magical Realism,Metafiction,Mystery,Mythology,Mythopoeia,Realistic Fiction,Science Fiction,Short Story,Thrill,Tall Tale,Western,Biography,Autobiography,Essay,Narrative Nonfiction,Memoir,Speech,Lab Report,Textbook,Reference Book,Self Help Book,Journalism</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>defaultGenre</param-name>
+		<param-value>None</param-value>
+	</context-param>
+</web-app>
+
+
