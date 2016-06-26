@@ -142,7 +142,10 @@ public class BookController {
 	public String prevQueries(Map<String, Object> model, HttpSession session) {
 		String query = (String) session.getAttribute("prevQuery");
 		Pageable prev = (Pageable) session.getAttribute("prevPage");
-
+		if (prev == null) {
+			prev = new PageRequest(0, 10);
+		}
+		prev = sortByTitle(prev);
 		TransactionWithResult<Page<BookBuilder>> filteredTrans;
 		if (query == null) {
 			filteredTrans = transMger.getAllTransaction(prev);

@@ -9,6 +9,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import net.viperfish.bookManager.filters.PreSescLoggingFilter;
@@ -34,6 +35,10 @@ public class SpringBootStrap implements WebApplicationInitializer {
 
 		FilterRegistration.Dynamic registration = servletContext.addFilter("preSecFilter", new PreSescLoggingFilter());
 		registration.addMappingForUrlPatterns(null, false, "/*");
+
+		FilterRegistration.Dynamic reg = servletContext.addFilter("encoding",
+				new CharacterEncodingFilter("UTF-8", true));
+		reg.addMappingForUrlPatterns(null, false, "/*");
 	}
 
 }
