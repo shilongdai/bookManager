@@ -16,6 +16,7 @@ public final class Report {
 	private Map<String, Integer> genreOverview;
 	private List<Date> publishDates;
 	private BigDecimal available;
+	private Map<String, Integer> languageOverview;
 
 	private List<Date> copyDates(List<Date> src) {
 		List<Date> result = new LinkedList<>();
@@ -32,7 +33,7 @@ public final class Report {
 	}
 
 	public Report(int total, int categories, int authors, int languages, Map<String, Integer> genreOverview,
-			List<Date> publishDates, BigDecimal available) {
+			List<Date> publishDates, BigDecimal available, Map<String, Integer> languageOverview) {
 		super();
 		this.total = total;
 		this.categories = categories;
@@ -40,8 +41,8 @@ public final class Report {
 		this.languages = languages;
 		this.genreOverview = new HashMap<>(genreOverview);
 		this.available = available;
-
 		this.publishDates = copyDates(publishDates);
+		this.languageOverview = new HashMap<>(languageOverview);
 	}
 
 	public int getTotal() {
@@ -70,6 +71,10 @@ public final class Report {
 
 	public BigDecimal getAvailable() {
 		return available;
+	}
+
+	public Map<String, Integer> getLanguageOverview() {
+		return new HashMap<>(this.languageOverview);
 	}
 
 	@Override

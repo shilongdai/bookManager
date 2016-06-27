@@ -80,6 +80,9 @@ public final class ReportController {
 		model.put("genreString", toJsStringArray(extractGenresFromEntries(r.getGenreOverview())));
 		model.put("colours", jsColours(r.getCategories()));
 		model.put("report", r);
+		model.put("langString", toJsStringArray(extractGenresFromEntries(r.getLanguageOverview().entrySet())));
+		model.put("langData", extractNumbersFromEntries(r.getLanguageOverview().entrySet()));
+		model.put("langColours", jsColours(r.getLanguages()));
 		return "reportPage";
 	}
 

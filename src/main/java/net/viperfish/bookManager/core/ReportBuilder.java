@@ -16,9 +16,10 @@ public final class ReportBuilder {
 	private Map<String, Integer> genreOverview;
 	private List<Date> publishDates;
 	private BigDecimal available;
+	private Map<String, Integer> languageOverview;
 
 	public ReportBuilder(int total, int categories, int authors, int languages, Map<String, Integer> genreOverview,
-			List<Date> publishDates, BigDecimal available) {
+			List<Date> publishDates, BigDecimal available, Map<String, Integer> langOverview) {
 		super();
 		this.total = total;
 		this.categories = categories;
@@ -27,6 +28,7 @@ public final class ReportBuilder {
 		this.genreOverview = genreOverview;
 		this.publishDates = publishDates;
 		this.available = available;
+		this.languageOverview = langOverview;
 	}
 
 	public ReportBuilder() {
@@ -98,8 +100,17 @@ public final class ReportBuilder {
 		return this;
 	}
 
+	public Map<String, Integer> getLanguageOverview() {
+		return languageOverview;
+	}
+
+	public void setLanguageOverview(Map<String, Integer> languageOverview) {
+		this.languageOverview = languageOverview;
+	}
+
 	public Report build() {
-		return new Report(total, categories, authors, languages, genreOverview, publishDates, available);
+		return new Report(total, categories, authors, languages, genreOverview, publishDates, available,
+				languageOverview);
 	}
 
 }

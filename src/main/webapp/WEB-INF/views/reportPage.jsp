@@ -44,8 +44,10 @@
 				</tbody>
 			</table>
 		</div>
-		
+
 		<canvas id="genreDesc"></canvas>
+		<br>
+		<canvas id="langDesc"></canvas>
 		<script type="text/javascript">
 			$(document).ready(function() {
 				var polarChart = $("#genreDesc");
@@ -66,8 +68,23 @@
 				        
 				    }
 				});
+				
+				var doughnutChart = $('#langDesc');
+				var langData = {
+					    labels: ${langString},
+					         datasets: [
+					             {
+					                 data: ${langData},
+					                 backgroundColor: ${langColours}
+					             }]
+					     };
+				new Chart(doughnutChart, {
+				    type: 'doughnut',
+				    data: langData,
+				    options: {}
+				});
 			})
 		</script>
 	</div>
-	
+
 </v:main>

@@ -46,6 +46,7 @@ class ReportGenerationTransaction extends TransactionWithResult<Report> {
 		rb.setLanguages(genLangCount());
 		rb.setPublishDates(genDates());
 		rb.setGenreOverview(genGenreOverview());
+		rb.setLanguageOverview(this.genLangOverview());
 		this.setResult(rb.build());
 	}
 
@@ -110,6 +111,15 @@ class ReportGenerationTransaction extends TransactionWithResult<Report> {
 			}
 		}
 		return result;
+	}
+
+	private Map<String, Integer> genLangOverview() {
+		Map<String, Integer> counts = new HashMap<>();
+		for (Book i : allBooks) {
+			Integer current = counts.get(i.getLang());
+			counts.put(i.getLang(), current == null ? 1 : current + 1);
+		}
+		return counts;
 	}
 
 }
