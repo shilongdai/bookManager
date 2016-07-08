@@ -34,7 +34,7 @@ class TransactionalUserPrincipalService implements UserPrincipalService {
 	@PreAuthorize("hasAuthority('admin')")
 	@Override
 	public UserPrincipal add(UserPrincipal t) throws ExecutionException {
-		PersistTransaction<UserPrincipal> trans = new PersistTransaction<UserPrincipal>(t, db);
+		AddUserTransaction trans = new AddUserTransaction(t, db);
 		return utils.transactionToResult(trans);
 	}
 
@@ -78,7 +78,7 @@ class TransactionalUserPrincipalService implements UserPrincipalService {
 	@Override
 	public UserPrincipal addUser(UserPrincipal user) throws ExecutionException {
 		user.getAuthorities().add(new UserAuthority("user"));
-		PersistTransaction<UserPrincipal> trans = new PersistTransaction<UserPrincipal>(user, db);
+		AddUserTransaction trans = new AddUserTransaction(user, db);
 		return utils.transactionToResult(trans);
 	}
 
@@ -87,7 +87,7 @@ class TransactionalUserPrincipalService implements UserPrincipalService {
 	public UserPrincipal addAdmin(UserPrincipal admin) throws ExecutionException {
 		admin.getAuthorities().add(new UserAuthority("admin"));
 		admin.getAuthorities().add(new UserAuthority("user"));
-		PersistTransaction<UserPrincipal> trans = new PersistTransaction<UserPrincipal>(admin, db);
+		AddUserTransaction trans = new AddUserTransaction(admin, db);
 		return utils.transactionToResult(trans);
 	}
 
