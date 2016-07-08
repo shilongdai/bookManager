@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.orm.jpa.EntityManagerProxy;
 import org.springframework.transaction.annotation.Transactional;
 
-public class BookDatabaseImpl implements SearchableDatabase<Long> {
+public class BookDatabaseImpl implements SearchableDatabase<Book> {
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -32,26 +32,26 @@ public class BookDatabaseImpl implements SearchableDatabase<Long> {
 
 	@Transactional
 	@Override
-	public Page<SearchResult<Long>> search(String query, Pageable page) {
+	public Page<Book> search(String query, Pageable page) {
 		FullTextEntityManager manager = this.getFullTextEntityManager();
 
-		QueryBuilder builder = manager.getSearchFactory().buildQueryBuilder().forEntity(BookBuilder.class).get();
+		QueryBuilder builder = manager.getSearchFactory().buildQueryBuilder().forEntity(Book.class).get();
 
 		Query luceneQuery = builder.keyword().fuzzy()
 				.onFields("author", "title", "lang", "description", "isbn", "genre", "location").matching(query)
 				.createQuery();
 
-		FullTextQuery q = manager.createFullTextQuery(luceneQuery, BookBuilder.class);
-		q.setProjection(FullTextQuery.ID, FullTextQuery.SCORE);
+		FullTextQuery q = manager.createFullTextQuery(luceneQuery, Book.class);
+		q.setProjection(FullTextQuery.THIS, FullTextQuery.SCORE);
 
 		long total = q.getResultSize();
 		q.setFirstResult(page.getOffset()).setMaxResults(page.getPageSize());
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> result = q.getResultList();
-		List<SearchResult<Long>> fine = new LinkedList<>();
+		List<Book> fine = new LinkedList<>();
 		for (Object[] i : result) {
-			fine.add(new SearchResult<Long>((Long) i[0], (float) i[1]));
+			fine.add((Book) i[0]);
 		}
 		return new PageImpl<>(fine, page, total);
 	}

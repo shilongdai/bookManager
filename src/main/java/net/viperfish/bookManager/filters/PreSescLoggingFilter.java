@@ -39,7 +39,7 @@ public class PreSescLoggingFilter implements Filter {
 			resp.setHeader("Log-ID", id);
 			chain.doFilter(request, response);
 		} catch (Throwable e) {
-			logger.error(e);
+			logger.error("error", e);
 		} finally {
 			ThreadContext.remove("id");
 			ThreadContext.remove("username");

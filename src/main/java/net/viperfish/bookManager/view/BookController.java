@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolation;
@@ -31,18 +32,16 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 
 import net.viperfish.bookManager.core.Book;
-import net.viperfish.bookManager.core.BookBuilder;
+import net.viperfish.bookManager.core.BookService;
 import net.viperfish.bookManager.core.Genres;
-import net.viperfish.bookManager.core.TransactionWithResult;
 import net.viperfish.bookManager.core.UserPrincipal;
-import net.viperfish.bookManager.transactions.TransactionManager;
 
 @Controller
 @RequestMapping(value = "book")
 public class BookController {
 
 	@Autowired
-	private TransactionManager transMger;
+	private BookService bookService;
 
 	@Autowired
 	private Genres genres;
@@ -67,14 +66,14 @@ public class BookController {
 		return result;
 	}
 
-	private void fillInModelAdd(Map<String, Object> model, BookBuilder toAdd) {
+	private void fillInModelAdd(Map<String, Object> model, Book toAdd) {
 		model.put("genre", genres.values());
 		model.put("book", toAdd);
 		model.put("target", "/book");
 		model.put("type", "post");
 	}
 
-	private void fillInModelEdit(Map<String, Object> model, BookBuilder form, Long id) {
+	private void fillInModelEdit(Map<String, Object> model, Book form, Long id) {
 		model.put("genre", genres.values());
 		model.put("book", form);
 		model.put("target", "/book/" + id);
@@ -86,14 +85,6 @@ public class BookController {
 		session.setAttribute("prevPage", new PageRequest(0, 10));
 	}
 
-	private List<Book> buildersToBook(Iterable<BookBuilder> src) {
-		List<Book> result = new LinkedList<>();
-		for (BookBuilder i : src) {
-			result.add(i.build());
-		}
-		return result;
-	}
-
 	private int pageCountFix(int orig) {
 		if (orig == 0) {
 			return orig + 1;
@@ -102,12 +93,10 @@ public class BookController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String allBooks(Map<String, Object> model, HttpSession session, Pageable paging) {
+	public String allBooks(Map<String, Object> model, HttpSession session, Pageable paging) throws ExecutionException {
 		paging = sortByTitle(paging);
-		TransactionWithResult<Page<BookBuilder>> getAll = transMger.getAllTransaction(paging);
-		getAll.execute();
-		Page<BookBuilder> result = getAll.getResult();
-		model.put("books", buildersToBook(result.getContent()));
+		Page<Book> result = bookService.getAll(paging);
+		model.put("books", result.getContent());
 		model.put("pageCount", pageCountFix(result.getTotalPages()));
 		model.put("currentPage", paging.getPageNumber());
 		setDefaultParameters(session);
@@ -116,22 +105,19 @@ public class BookController {
 
 	@RequestMapping(method = RequestMethod.GET, params = { "q", "page", "size" })
 	public String keywordSearch(@RequestParam(value = "q") String query, HttpSession session, Map<String, Object> model,
-			Pageable paging) {
+			Pageable paging) throws ExecutionException {
 		paging = sortByTitle(paging);
 		session.setAttribute("prevPage", paging);
-		TransactionWithResult<Page<BookBuilder>> trans;
+		Page<Book> result;
 		if (query.length() > 0) {
 			session.setAttribute("prevQuery", query);
-			trans = transMger.getSearchTransaction(query, paging);
+			result = bookService.search(query, paging);
 		} else {
-			trans = transMger.getAllTransaction(paging);
+			result = bookService.getAll(paging);
 			setDefaultParameters(session);
 		}
-		trans.execute();
 
-		Page<BookBuilder> result = trans.getResult();
-
-		model.put("books", buildersToBook(result.getContent()));
+		model.put("books", result.getContent());
 		model.put("q", query);
 		model.put("pageCount", pageCountFix(result.getTotalPages()));
 		model.put("currentPage", paging.getPageNumber());
@@ -139,24 +125,22 @@ public class BookController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, params = { "usePrev", "prevPage" })
-	public String prevQueries(Map<String, Object> model, HttpSession session) {
+	public String prevQueries(Map<String, Object> model, HttpSession session) throws ExecutionException {
 		String query = (String) session.getAttribute("prevQuery");
 		Pageable prev = (Pageable) session.getAttribute("prevPage");
 		if (prev == null) {
 			prev = new PageRequest(0, 10);
 		}
+		Page<Book> result;
+
 		prev = sortByTitle(prev);
-		TransactionWithResult<Page<BookBuilder>> filteredTrans;
 		if (query == null) {
-			filteredTrans = transMger.getAllTransaction(prev);
+			result = bookService.getAll(prev);
 		} else {
-			filteredTrans = transMger.getSearchTransaction(query, prev);
+			result = bookService.search(query, prev);
 		}
 
-		filteredTrans.execute();
-		Page<BookBuilder> result = filteredTrans.getResult();
-
-		model.put("books", buildersToBook(result.getContent()));
+		model.put("books", result.getContent());
 		model.put("q", query);
 		model.put("pageCount", pageCountFix(result.getTotalPages()));
 		model.put("currentPage", prev.getPageNumber());
@@ -165,20 +149,20 @@ public class BookController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, params = { "usePrev", "page", "size" })
-	public String paginationWithPrev(Map<String, Object> model, HttpSession session, Pageable paging) {
+	public String paginationWithPrev(Map<String, Object> model, HttpSession session, Pageable paging)
+			throws ExecutionException {
 		paging = sortByTitle(paging);
 		session.setAttribute("prevPage", paging);
 		String query = (String) session.getAttribute("prevQuery");
-		TransactionWithResult<Page<BookBuilder>> operation;
-		if (query == null) {
-			operation = transMger.getAllTransaction(paging);
-		} else {
-			operation = transMger.getSearchTransaction(query, paging);
-		}
-		operation.execute();
-		Page<BookBuilder> result = operation.getResult();
 
-		model.put("books", buildersToBook(result.getContent()));
+		Page<Book> result;
+		if (query == null) {
+			result = bookService.getAll(paging);
+		} else {
+			result = bookService.search(query, paging);
+		}
+
+		model.put("books", result.getContent());
 		model.put("q", query);
 		model.put("pageCount", pageCountFix(result.getTotalPages()));
 		model.put("currentPage", paging.getPageNumber());
@@ -187,7 +171,7 @@ public class BookController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public ModelAndView addBook(BookBuilder toAdd, BindingResult errors, Map<String, Object> model) {
+	public ModelAndView addBook(Book toAdd, BindingResult errors, Map<String, Object> model) throws ExecutionException {
 		if (errors.getFieldError("bookBuilder.published") != null) {
 			log.warn(errors.toString());
 			fillInModelAdd(model, toAdd);
@@ -195,11 +179,8 @@ public class BookController {
 			return new ModelAndView("addBook");
 		}
 		try {
-			TransactionWithResult<Long> trans = transMger.getAddBookTransaction(toAdd.build());
-			trans.execute();
-			Long id;
-			id = trans.getResult();
-			return new ModelAndView(new RedirectView("/book/" + id, true));
+			Book result = bookService.add(toAdd);
+			return new ModelAndView(new RedirectView("/book/" + result.getId(), true));
 		} catch (ConstraintViolationException e) {
 			fillInModelAdd(model, toAdd);
 			model.put("errors", constraints2String((e.getConstraintViolations())));
@@ -210,23 +191,22 @@ public class BookController {
 
 	@RequestMapping(value = "add", method = RequestMethod.GET)
 	public String addBookPage(Map<String, Object> model, @AuthenticationPrincipal UserPrincipal user) {
-		fillInModelAdd(model, new BookBuilder("", "", false, null, null, genres.getDefault(), "", "", "", user, ""));
+		fillInModelAdd(model, new Book("", "", false, null, null, genres.getDefault(), "", "", "", user, ""));
 		return "addBook";
 	}
 
 	@RequestMapping(value = "edit", method = RequestMethod.GET, params = { "id" })
-	public String editBookPage(Map<String, Object> model, @RequestParam(value = "id", required = true) Long id) {
-		TransactionWithResult<Book> getEdit = transMger.getGetTransaction(id);
-		getEdit.execute();
-		BookBuilder formObject = new BookBuilder(getEdit.getResult());
+	public String editBookPage(Map<String, Object> model, @RequestParam(value = "id", required = true) Long id)
+			throws ExecutionException {
+		Book formObject = new Book(bookService.get(id));
 		fillInModelEdit(model, formObject, id);
 		return "addBook";
 
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
-	public ModelAndView editBook(BookBuilder form, BindingResult errors, Map<String, Object> model,
-			@PathVariable(value = "id") Long id) {
+	public ModelAndView editBook(Book form, BindingResult errors, Map<String, Object> model,
+			@PathVariable(value = "id") Long id) throws ExecutionException {
 		if (errors.getFieldError("bookBuilder.published") != null) {
 			log.warn(errors.toString());
 			fillInModelEdit(model, form, id);
@@ -234,14 +214,7 @@ public class BookController {
 			return new ModelAndView("addBook");
 		}
 		try {
-			TransactionWithResult<Book> transaction = transMger.getModifyTransaction(id, form.build());
-			transaction.execute();
-
-			Book result;
-			result = transaction.getResult();
-			if (result == null) {
-				throw new IllegalArgumentException("Invalid book to modify:" + form.build().toString());
-			}
+			Book result = bookService.update(id, form);
 			return new ModelAndView(new RedirectView("/book/" + result.getId(), true));
 		} catch (ConstraintViolationException e) {
 			fillInModelEdit(model, form, id);
@@ -251,25 +224,21 @@ public class BookController {
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-	public View deleteBook(@PathVariable(value = "id") Long id, Map<String, Object> model) {
-		TransactionWithResult<Book> deleteBook = transMger.getDeleteTransaction(id);
-		deleteBook.execute();
-		deleteBook.getResult();
+	public View deleteBook(@PathVariable(value = "id") Long id, Map<String, Object> model) throws ExecutionException {
+		bookService.remove(id);
 		model.put("usePrev", true);
 		model.put("prevPage", true);
 		return new RedirectView("/book", true);
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
-	public String viewBook(@PathVariable(value = "id") Long id, Map<String, Object> model) {
-		TransactionWithResult<Book> getBook = transMger.getGetTransaction(id);
-		getBook.execute();
-		Book result = getBook.getResult();
+	public String viewBook(@PathVariable(value = "id") Long id, Map<String, Object> model) throws ExecutionException {
+		Book result = bookService.get(id);
 		if (result == null) {
 			throw new BookNotFound(id.toString());
 		}
-		BookBuilder temp = new BookBuilder(result);
-		result = temp.setDescription(StringEscapeUtils.escapeEcmaScript(temp.getDescription())).build();
+		Book temp = new Book(result);
+		result = temp.setDescription(StringEscapeUtils.escapeEcmaScript(temp.getDescription()));
 		model.put("book", result);
 		return "viewBook";
 	}

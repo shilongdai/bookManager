@@ -3,6 +3,7 @@ package net.viperfish.bookManager.view;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -15,16 +16,15 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 
-import net.viperfish.bookManager.core.TransactionWithResult;
 import net.viperfish.bookManager.core.UserExistException;
 import net.viperfish.bookManager.core.UserPrincipal;
-import net.viperfish.bookManager.transactions.TransactionManager;
+import net.viperfish.bookManager.core.UserPrincipalService;
 
 @Controller
 public class RootController {
 
 	@Autowired
-	private TransactionManager manager;
+	private UserPrincipalService userService;
 
 	@Autowired
 	private MessageSource i18n;
@@ -55,7 +55,8 @@ public class RootController {
 	}
 
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
-	public ModelAndView register(UserForm form, BindingResult errors, Map<String, Object> model) {
+	public ModelAndView register(UserForm form, BindingResult errors, Map<String, Object> model)
+			throws ExecutionException {
 		if (errors.hasErrors()) {
 			List<String> messages = Utils.INSTANCE.fieldErrors2String(errors.getFieldErrors());
 			model.put("errors", messages);
@@ -63,10 +64,8 @@ public class RootController {
 			return new ModelAndView("signUp");
 		}
 		UserPrincipal newUser = formToPrincipal(form);
-		TransactionWithResult<UserPrincipal> addUser = manager.createUser(newUser);
-		addUser.execute();
 		try {
-			addUser.getResult();
+			userService.addUser(newUser);
 		} catch (RuntimeException e) {
 			if (e.getCause() instanceof UserExistException) {
 				List<String> error = new LinkedList<>();

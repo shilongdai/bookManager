@@ -6,20 +6,20 @@ import org.springframework.data.repository.CrudRepository;
 
 import net.viperfish.bookManager.core.TransactionWithResult;
 
-final class GetTransaction<T, ID extends Serializable> extends TransactionWithResult<T> {
+class GetTransaction<T, ID extends Serializable> extends TransactionWithResult<T> {
 
-	private CrudRepository<? extends T, ID> db;
+	private CrudRepository<T, ID> db;
+
 	private ID id;
 
-	public GetTransaction(ID id, CrudRepository<? extends T, ID> db) {
-		this.db = db;
+	public GetTransaction(ID id, CrudRepository<T, ID> repo) {
+		this.db = repo;
 		this.id = id;
 	}
 
 	@Override
 	public void execute() {
-		T result = db.findOne(id);
-		setResult(result);
+		this.setResult(db.findOne(id));
 	}
 
 }

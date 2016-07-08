@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 
-import net.viperfish.bookManager.core.BookBuilder;
+import net.viperfish.bookManager.core.Book;
 import net.viperfish.bookManager.core.BookDatabase;
 
 @Controller
@@ -23,7 +23,7 @@ public class UtilityController {
 
 	@RequestMapping(value = "rebuildIndex", method = RequestMethod.GET)
 	public View rebuildIndex() {
-		Iterable<BookBuilder> all = db.findAll();
+		Iterable<Book> all = db.findAll();
 		db.deleteAll();
 		db.save(all);
 		return new RedirectView("/book", true);
@@ -31,8 +31,8 @@ public class UtilityController {
 
 	@RequestMapping(value = "updateGenres", method = RequestMethod.GET)
 	public View updateGenres() {
-		Iterable<BookBuilder> all = db.findAll();
-		for (BookBuilder i : all) {
+		Iterable<Book> all = db.findAll();
+		for (Book i : all) {
 			i.setGenre(i.getGenre().replace('_', ' '));
 			if (i.getGenre().equalsIgnoreCase("SelfHelp_Book")) {
 				i.setGenre("Self Help Book");

@@ -1,14 +1,55 @@
 package net.viperfish.bookManager.core;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
 
+import javax.persistence.Basic;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.Past;
 
+import org.apache.lucene.analysis.charfilter.HTMLStripCharFilterFactory;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
+import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.Analyzer;
+import org.hibernate.search.annotations.AnalyzerDef;
+import org.hibernate.search.annotations.CharFilterDef;
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.DocumentId;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Parameter;
+import org.hibernate.search.annotations.Resolution;
+import org.hibernate.search.annotations.TokenFilterDef;
+import org.hibernate.search.annotations.TokenizerDef;
 import org.hibernate.validator.constraints.Length;
 
-public final class Book implements Comparable<Book> {
+@Entity
+@Indexed
+@Table(name = "Book")
+@AnalyzerDef(name = "custom", tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class), charFilters = {
+		@CharFilterDef(factory = HTMLStripCharFilterFactory.class) }, filters = {
+				@TokenFilterDef(factory = LowerCaseFilterFactory.class),
+				@TokenFilterDef(factory = ASCIIFoldingFilterFactory.class),
+				@TokenFilterDef(factory = SnowballPorterFilterFactory.class, params = {
+						@Parameter(name = "language", value = "English") }) })
+public class Book implements Serializable {
+	/**
+	 * 
+	 */
 
+	private static final long serialVersionUID = 5855272950611670378L;
 	@Length(min = 0, max = 50, message = "{book.authorLength}")
 	private String author;
 	@Length(min = 0, max = 100, message = "{book.titleLength}")
@@ -17,6 +58,7 @@ public final class Book implements Comparable<Book> {
 	@Past(message = "{book.publishedPast}")
 	private Date published;
 	private Long id; // identifier
+	@Length(min = 0, max = 20, message = "{book.genreTooLong}")
 	private String genre;
 	@Length(min = 0, max = 40, message = "{book.langLength}")
 	private String lang;
@@ -24,204 +66,183 @@ public final class Book implements Comparable<Book> {
 	private String description;
 	@Length(min = 10, max = 13, message = "{book.isbnLength}")
 	private String isbn;
-	private UserPrincipal owner;
 	@Length(min = 0, max = 50, message = "{book.locationLength}")
 	private String location;
+
+	private UserPrincipal owner;
+
+	public Book() {
+		author = new String();
+		title = new String();
+		lang = new String();
+		description = new String();
+		isbn = new String();
+		owner = new UserPrincipal();
+		location = new String();
+	}
+
+	public Book(Book b) {
+		this.author = b.getAuthor();
+		this.available = b.isAvailable();
+		this.description = b.getDescription();
+		this.genre = b.getGenre();
+		this.id = b.getId();
+		this.lang = b.getLang();
+		if (b.getPublished() != null)
+			this.published = new Date(b.getPublished().getTime());
+		this.title = b.getTitle();
+		this.isbn = b.getIsbn();
+		this.owner = b.getOwner();
+		this.location = b.getLocation();
+	}
 
 	public Book(String author, String title, boolean available, Date published, Long id, String genre, String lang,
 			String description, String isbn, UserPrincipal owner, String location) {
 		super();
-		this.author = (author == null) ? new String() : author;
-		this.title = (title == null) ? new String() : title;
+		this.author = author;
+		this.title = title;
 		this.available = available;
-		if (published != null) {
-			this.published = new Date(published.getTime());
-		}
+		this.published = published;
 		this.id = id;
 		this.genre = genre;
-		this.lang = (lang == null) ? new String() : lang;
-		this.description = (description == null) ? new String() : description;
-		this.isbn = (isbn == null) ? new String() : isbn;
+		this.lang = lang;
+		this.description = description;
+		this.isbn = isbn;
 		this.owner = owner;
 		this.location = location;
 	}
 
-	public Book(Book src) {
-		this(src.author, src.title, src.available, src.published, src.id, src.genre, src.lang, src.description,
-				src.isbn, src.owner, src.location);
-	}
-
-	public Book(Book src, Long id) {
-		this(src.author, src.title, src.available, src.published, id, src.genre, src.lang, src.description, src.isbn,
-				src.owner, src.location);
-	}
-
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
+	@Basic
 	public String getAuthor() {
 		return author;
 	}
 
+	public Book setAuthor(String author) {
+		this.author = author;
+		return this;
+	}
+
+	@Basic
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
 	public String getTitle() {
 		return title;
 	}
 
+	public Book setTitle(String title) {
+		this.title = title;
+		return this;
+	}
+
+	@Basic
+	@Field(analyze = Analyze.YES)
 	public boolean isAvailable() {
 		return available;
 	}
 
+	public Book setAvailable(boolean available) {
+		this.available = available;
+		return this;
+	}
+
+	@Temporal(TemporalType.DATE)
+	@Field(analyze = Analyze.NO)
+	@DateBridge(resolution = Resolution.DAY)
 	public Date getPublished() {
-		if (this.published != null) {
-			return new Date(this.published.getTime());
-		}
-		return null;
+		return published;
 	}
 
-	public Long getId() {
-		return id;
+	public Book setPublished(Date published) {
+		this.published = published;
+		return this;
 	}
 
-	public String getGenre() {
-		return genre;
-	}
-
-	public String getLang() {
-		return lang;
-	}
-
+	@Basic
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
 	public String getDescription() {
 		return description;
 	}
 
+	public Book setDescription(String description) {
+		this.description = description;
+		return this;
+	}
+
+	@DocumentId
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	public Long getId() {
+		return id;
+	}
+
+	public Book setId(Long id) {
+		this.id = id;
+		return this;
+	}
+
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
+	@Basic
+	public String getGenre() {
+		return genre;
+	}
+
+	public Book setGenre(String genre) {
+		this.genre = genre;
+		return this;
+	}
+
+	@Basic
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
+	public String getLang() {
+		return lang;
+	}
+
+	public Book setLang(String lang) {
+		this.lang = lang;
+		return this;
+	}
+
+	@Basic
+	@Analyzer(definition = "custom")
+	@Field(analyze = Analyze.YES)
 	public String getIsbn() {
 		return isbn;
 	}
 
-	public UserPrincipal getOwner() {
-		UserPrincipal copy = new UserPrincipal();
-		copy.setAccountNonExpired(this.owner.isAccountNonExpired());
-		copy.setAccountNonLocked(this.owner.isAccountNonLocked());
-		copy.setEnabled(this.owner.isEnabled());
-		copy.setCredentialsNonExpired(this.owner.isCredentialsNonExpired());
-		copy.setId(this.owner.getId());
-		if (this.owner.getAuthorities() == null) {
-			copy.setAuthorities(new HashSet<UserAuthority>());
-		} else {
-			copy.setAuthorities(new HashSet<>(this.owner.getAuthorities()));
-		}
-		copy.setPassword(this.owner.getPassword());
-		copy.setUsername(this.owner.getUsername());
-		return copy;
+	public Book setIsbn(String isbn) {
+		this.isbn = isbn;
+		return this;
 	}
 
+	public Book copy() {
+		return new Book(author, title, available, published, id, genre, lang, description, isbn, owner, location);
+	}
+
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@JoinColumn(name = "UserId")
+	public UserPrincipal getOwner() {
+		return owner;
+	}
+
+	public Book setOwner(UserPrincipal owner) {
+		this.owner = owner;
+		return this;
+	}
+
+	@Field(analyze = Analyze.YES)
+	@Analyzer(definition = "custom")
+	@Basic
 	public String getLocation() {
 		return location;
 	}
 
-	@Override
-	public int compareTo(Book o) {
-		if (this == o) {
-			return 0;
-		}
-		if (o == null) {
-			return 1;
-		}
-		if (this.equals(o)) {
-			return 0;
-		}
-		if (this.title == null) {
-			if (o.title != null) {
-				return -1;
-			}
-		} else {
-			if (o.title == null) {
-				return 1;
-			} else if (this.title.compareTo(o.title) != 0) {
-				return this.title.compareTo(o.title);
-			}
-		}
-
-		if (this.author == null) {
-			if (o.author != null) {
-				return -1;
-			}
-		} else {
-			if (o.author == null) {
-				return 1;
-			} else if (this.author.compareTo(o.author) != 0) {
-				return this.author.compareTo(o.author);
-			}
-		}
-
-		if (this.genre == null) {
-			if (o.genre != null) {
-				return -1;
-			}
-		} else {
-			if (o.genre == null) {
-				return 1;
-			} else if (this.genre.compareTo(o.genre) != 0) {
-				return this.genre.compareTo(o.genre);
-			}
-		}
-
-		if (this.lang == null) {
-			if (o.lang != null) {
-				return -1;
-			}
-		} else {
-			if (o.lang == null) {
-				return 1;
-			} else if (this.lang.compareTo(o.lang) != 0) {
-				return this.lang.compareTo(o.lang);
-			}
-		}
-
-		if (this.published == null) {
-			if (o.published != null) {
-				return -1;
-			}
-		} else {
-			if (o.published == null) {
-				return 1;
-			} else if (this.published.compareTo(o.published) != 0) {
-				return this.published.compareTo(o.published);
-			}
-		}
-
-		if (this.available) {
-			if (!o.available) {
-				return 1;
-			}
-		} else {
-			if (o.available) {
-				return -1;
-			}
-		}
-
-		if (this.description == null) {
-			if (o.description != null) {
-				return -1;
-			}
-		} else {
-			if (o.description == null) {
-				return 1;
-			} else if (this.description.compareTo(o.description) != 0) {
-				return this.description.compareTo(o.description);
-			}
-		}
-
-		if (this.isbn == null) {
-			if (o.isbn != null) {
-				return -1;
-			}
-		} else {
-			if (o.isbn == null) {
-				return 1;
-			} else if (this.isbn.compareTo(o.isbn) != 0) {
-				return this.isbn.compareTo(o.isbn);
-			}
-		}
-
-		return 0;
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
 	@Override
@@ -304,6 +325,13 @@ public final class Book implements Comparable<Book> {
 		} else if (!title.equals(other.title))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "BookBuilder [author=" + author + ", title=" + title + ", available=" + available + ", published="
+				+ published + ", id=" + id + ", genre=" + genre + ", lang=" + lang + ", description=" + description
+				+ ", isbn=" + isbn + ", location=" + location + ", owner=" + owner + "]";
 	}
 
 }

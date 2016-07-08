@@ -1,4 +1,4 @@
-package net.viperfish.bookManager.auth;
+package net.viperfish.bookManager.transactions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,10 +14,6 @@ class JPAUserService implements UserService {
 
 	@Autowired
 	private UserPrincipalDatabase db;
-
-	public JPAUserService() {
-		// TODO Auto-generated constructor stub
-	}
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import net.viperfish.bookManager.core.Book;
-import net.viperfish.bookManager.core.BookBuilder;
 import net.viperfish.bookManager.core.BookDatabase;
 import net.viperfish.bookManager.core.Report;
 import net.viperfish.bookManager.core.ReportBuilder;
@@ -27,10 +26,10 @@ class ReportGenerationTransaction extends TransactionWithResult<Report> {
 		this.db = db;
 	}
 
-	private List<Book> iterableToList(Iterable<BookBuilder> iter) {
+	private List<Book> iterableToList(Iterable<Book> iter) {
 		List<Book> result = new LinkedList<>();
-		for (BookBuilder i : iter) {
-			result.add(i.build());
+		for (Book i : iter) {
+			result.add(i);
 		}
 		return result;
 	}

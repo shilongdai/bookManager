@@ -40,7 +40,7 @@ public class UserPrincipal implements UserDetails, CredentialsContainer, Cloneab
 	private boolean accountNonLocked;
 	private boolean credentialsNonExpired;
 	private boolean enabled;
-	private List<BookBuilder> book;
+	private List<Book> book;
 
 	public UserPrincipal() {
 		book = new LinkedList<>();
@@ -136,11 +136,11 @@ public class UserPrincipal implements UserDetails, CredentialsContainer, Cloneab
 	}
 
 	@OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
-	public List<BookBuilder> getBook() {
+	public List<Book> getBook() {
 		return book;
 	}
 
-	public void setBook(List<BookBuilder> book) {
+	public void setBook(List<Book> book) {
 		this.book = book;
 	}
 

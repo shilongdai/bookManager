@@ -6,15 +6,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import net.viperfish.bookManager.core.BookService;
 import net.viperfish.bookManager.core.Report;
-import net.viperfish.bookManager.core.TransactionWithResult;
-import net.viperfish.bookManager.transactions.TransactionManager;
 
 @Controller
 @RequestMapping(value = "report")
@@ -56,7 +56,7 @@ public final class ReportController {
 	}
 
 	@Autowired
-	private TransactionManager transMger;
+	private BookService bookService;
 
 	public ReportController() {
 		generator = new ColourPicker();
@@ -71,10 +71,8 @@ public final class ReportController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String generateReport(Map<String, Object> model) {
-		TransactionWithResult<Report> trans = transMger.getReportGenTransaction();
-		trans.execute();
-		Report r = trans.getResult();
+	public String generateReport(Map<String, Object> model) throws ExecutionException {
+		Report r = bookService.generateReport();
 		model.put("genres", r.getGenreOverview());
 		model.put("genreData", extractNumbersFromEntries(r.getGenreOverview()));
 		model.put("genreString", toJsStringArray(extractGenresFromEntries(r.getGenreOverview())));

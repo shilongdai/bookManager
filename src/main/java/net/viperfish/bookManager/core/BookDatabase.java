@@ -10,28 +10,28 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @Transactional
-public interface BookDatabase extends CrudRepository<BookBuilder, Long>, PagingAndSortingRepository<BookBuilder, Long>,
-		SearchableDatabase<Long> {
+public interface BookDatabase
+		extends CrudRepository<Book, Long>, PagingAndSortingRepository<Book, Long>, SearchableDatabase<Book> {
 
-	public Page<BookBuilder> findByIdIn(Iterable<Long> ids, Pageable pageable);
+	public Page<Book> findByIdIn(Iterable<Long> ids, Pageable pageable);
 
-	public BookBuilder findOneByIdAndOwner_Id(Long id, Long owner);
+	public Book findOneByIdAndOwner_Id(Long id, Long owner);
 
-	public Iterable<BookBuilder> findBooksByOwner_Id(Long owner);
+	public Iterable<Book> findBooksByOwner_Id(Long owner);
 
 	public Long countByOwner_Id(Long owner);
 
-	public Iterable<BookBuilder> findAllByIdInAndOwner_Id(Iterable<Long> ids, Long owner);
+	public Iterable<Book> findAllByIdInAndOwner_Id(Iterable<Long> ids, Long owner);
 
 	public void deleteByIdAndOwner_Id(Long id, Long owner);
 
 	public void deleteAllByOwner_Id(Long owner);
 
-	public Iterable<BookBuilder> findAllByOwner_Id(Long owner, Sort sort);
+	public Iterable<Book> findAllByOwner_Id(Long owner, Sort sort);
 
-	public Page<BookBuilder> findAllByOwner_Id(Long owner, Pageable page);
+	public Page<Book> findAllByOwner_Id(Long owner, Pageable page);
 
-	public Page<BookBuilder> findByIdInAndOwner_Id(Iterable<Long> ids, Long owner, Pageable page);
+	public Page<Book> findByIdInAndOwner_Id(Iterable<Long> ids, Long owner, Pageable page);
 
 	public void deleteByIdInAndOwner_Id(Iterable<Long> ids, Long owner);
 

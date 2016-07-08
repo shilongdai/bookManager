@@ -1,25 +1,29 @@
 package net.viperfish.bookManager.transactions;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
-import net.viperfish.bookManager.core.BookBuilder;
-import net.viperfish.bookManager.core.BookDatabase;
+import org.springframework.data.repository.CrudRepository;
+
 import net.viperfish.bookManager.core.TransactionWithResult;
 
-class GetAllTransaction extends TransactionWithResult<Page<BookBuilder>> {
+class GetAllTransaction<T> extends TransactionWithResult<Collection<T>> {
 
-	private BookDatabase db;
-	private Pageable paging;
+	private CrudRepository<T, ? extends Serializable> db;
 
-	public GetAllTransaction(Pageable paging, BookDatabase db) {
-		this.db = db;
-		this.paging = paging;
+	public GetAllTransaction(CrudRepository<T, ? extends Serializable> repo) {
+		this.db = repo;
 	}
 
 	@Override
 	public void execute() {
-		this.setResult(db.findAll(paging));
+		List<T> result = new LinkedList<>();
+		for (T i : db.findAll()) {
+			result.add(i);
+		}
+		this.setResult(result);
 	}
 
 }
