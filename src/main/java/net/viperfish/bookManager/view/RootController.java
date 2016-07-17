@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -55,7 +57,7 @@ public class RootController {
 	}
 
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
-	public ModelAndView register(UserForm form, BindingResult errors, Map<String, Object> model)
+	public ModelAndView register(@Valid UserForm form, BindingResult errors, Map<String, Object> model)
 			throws ExecutionException {
 		if (errors.hasErrors()) {
 			List<String> messages = Utils.INSTANCE.fieldErrors2String(errors.getFieldErrors());
