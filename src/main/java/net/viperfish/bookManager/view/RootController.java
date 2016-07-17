@@ -68,7 +68,7 @@ public class RootController {
 		UserPrincipal newUser = formToPrincipal(form);
 		try {
 			userService.addUser(newUser);
-		} catch (RuntimeException e) {
+		} catch (ExecutionException e) {
 			if (e.getCause() instanceof UserExistException) {
 				List<String> error = new LinkedList<>();
 				error.add(i18n.getMessage("user.exists", null, LocaleContextHolder.getLocale()));

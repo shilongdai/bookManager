@@ -1,14 +1,13 @@
 package net.viperfish.bookManager.view;
 
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotBlank;
 
 class UserForm {
 
 	@Length(min = 1, max = 64, message = "{user.usernameLength}")
 	private String username;
 
-	@NotBlank(message = "{user.passwordLength}")
+	@Length(min = 8, message = "{user.passwordLength}")
 	private String password;
 
 	public UserForm() {

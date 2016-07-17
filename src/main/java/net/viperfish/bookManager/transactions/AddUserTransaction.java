@@ -3,6 +3,7 @@ package net.viperfish.bookManager.transactions;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import net.viperfish.bookManager.core.TransactionWithResult;
+import net.viperfish.bookManager.core.UserExistException;
 import net.viperfish.bookManager.core.UserPrincipal;
 import net.viperfish.bookManager.core.UserPrincipalDatabase;
 
@@ -19,6 +20,9 @@ final class AddUserTransaction extends TransactionWithResult<UserPrincipal> {
 
 	@Override
 	public void execute() {
+		if (db.findByUsername(toAdd.getUsername()) != null) {
+			throw new UserExistException();
+		}
 		toAdd.setPassword(BCrypt.hashpw(toAdd.getPassword(), BCrypt.gensalt()));
 		this.setResult(db.save(toAdd));
 	}
